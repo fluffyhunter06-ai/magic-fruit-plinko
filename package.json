@@ -1,0 +1,29 @@
+{
+  "name": "magic-fruit-plinko",
+  "version": "1.0.0",
+  "description": "An interactive arcade-style Plinko game with physics simulation, coin system, and table mechanics",
+  "type": "module",
+  "main": "src/main.js",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "keywords": [
+    "plinko",
+    "arcade",
+    "game",
+    "physics",
+    "matter-js",
+    "vite",
+    "confetti"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "matter-js": "^0.20.0"
+  },
+  "devDependencies": {
+    "vite": "^5.0.0"
+  }
+}

@@ -1,0 +1,206 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+}
+
+.container {
+    background: rgba(20, 20, 40, 0.95);
+    border-radius: 20px;
+    padding: 30px;
+    max-width: 800px;
+    width: 100%;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5),
+                inset 0 0 40px rgba(255, 255, 255, 0.1);
+    border: 2px solid rgba(100, 200, 255, 0.3);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.header h1 {
+    color: #00ff88;
+    font-size: 36px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+    letter-spacing: 2px;
+}
+
+.stats {
+    display: flex;
+    gap: 40px;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.stat-item {
+    background: rgba(0, 255, 136, 0.1);
+    border: 2px solid #00ff88;
+    border-radius: 10px;
+    padding: 15px 25px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+}
+
+.label {
+    color: #00ff88;
+    font-size: 12px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.value {
+    color: #fff;
+    font-size: 24px;
+    font-weight: bold;
+}
+
+.game-wrapper {
+    position: relative;
+    margin-bottom: 20px;
+}
+
+#gameCanvas {
+    display: block;
+    width: 100%;
+    height: 800px;
+    background: linear-gradient(to bottom, #0a1a2e 0%, #16213e 100%);
+    border: 3px solid #00ff88;
+    border-radius: 10px;
+    cursor: crosshair;
+    box-shadow: inset 0 0 30px rgba(0, 255, 136, 0.2);
+}
+
+.instructions {
+    text-align: center;
+    color: #00ff88;
+    font-size: 14px;
+    margin-top: 10px;
+    font-style: italic;
+}
+
+.controls {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 25px;
+    flex-wrap: wrap;
+}
+
+.btn {
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn {
+    background: linear-gradient(135deg, #00ff88 0%, #00cc66 100%);
+    color: #000;
+    box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 255, 136, 0.6);
+}
+
+.btn:active {
+    transform: translateY(0);
+    box-shadow: 0 3px 10px rgba(0, 255, 136, 0.4);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #ff6b6b 0%, #ee5a52 100%);
+    color: #fff;
+    box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+}
+
+.btn-secondary:hover {
+    box-shadow: 0 8px 25px rgba(255, 107, 107, 0.6);
+}
+
+.bucket-legend {
+    background: rgba(0, 255, 136, 0.1);
+    border: 2px solid #00ff88;
+    border-radius: 10px;
+    padding: 20px;
+}
+
+.bucket-legend h3 {
+    color: #00ff88;
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 16px;
+    letter-spacing: 1px;
+}
+
+.bucket-items {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 15px;
+}
+
+.bucket-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #fff;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 6px;
+}
+
+.bucket-color {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 0 10px currentColor;
+}
+
+@media (max-width: 600px) {
+    .header h1 {
+        font-size: 28px;
+    }
+
+    .stats {
+        gap: 20px;
+    }
+
+    .stat-item {
+        padding: 12px 18px;
+    }
+
+    .value {
+        font-size: 18px;
+    }
+
+    .controls {
+        gap: 10px;
+    }
+
+    .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+    }
+}

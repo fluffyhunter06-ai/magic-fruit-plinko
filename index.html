@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Magic Fruit - Plinko Game</title>
+    <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+    <div class="helper-display" id="helperDisplay" style="display: none;">
+        <span id="positionText">X: 0 | Y: 0</span>
+    </div>
+    <button id="helperBtn" class="btn btn-helper">🎯 Helper ON/OFF</button>
+    
+    <!-- Slot Machine on Left Side -->
+    <div class="slot-machine-container">
+        <canvas id="slotMachineCanvas" width="120" height="240"></canvas>
+    </div>
+    
+    <div class="container">
+        <canvas id="gameCanvas" width="750" height="800"></canvas>
+        <button id="leftBtn" class="btn btn-coin btn-coin-left">LEFT</button>
+        <button id="rightBtn" class="btn btn-coin btn-coin-right">RIGHT</button>
+    </div>
+
+    <!-- Coin Info Panel on Right Side -->
+    <div class="coin-panel">
+        <div class="coin-header">💰 COINS</div>
+        <div class="coin-balance">
+            <span id="coinCount">50</span>
+        </div>
+        <div class="payout-info">
+            <div class="payout-title">PAYOUTS</div>
+            <div id="payoutList" class="payout-list"></div>
+        </div>
+        <button id="cashoutBtn" class="btn btn-cashout">CASHOUT</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
+    <script type="module" src="/src/main.js"></script>
+</body>
+</html>
