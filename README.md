@@ -5,27 +5,31 @@ An interactive arcade-style Plinko game built with **Matter.js** physics engine 
 ## 🎮 Game Features
 
 ### Core Gameplay
+
 - **Physics Simulation**: Realistic coin physics with gravity and collision detection
 - **Swaying Bars**: Animated obstacles that sway side-to-side
-- **Dual Bucket System**: 
+- **Dual Bucket System**:
   - 13 main buckets (9-16 numbers) at the bottom
   - 8 custom buckets (1-8 numbers) in the middle
   - Moving slot machine bucket that triggers spins
   - GAME OVER buckets that reset the game
 
 ### Table & Rows
+
 - **6 Emoji Rows**: 🏆 Trophy, 🍉 Watermelon, 🍑 Plum, 🍇 Grape, 🍊 Orange, 🍒 Cherry
 - **Complex Number Sharing**: Numbers are intelligently distributed across rows with dependencies
 - **SLOT Cells**: Trophy (2 slots) and Watermelon (1 slot) rows have special SLOT cells
 - **Completion Highlighting**: Rows turn yellow when complete with payout values in gold
 
 ### Coin System
+
 - **Starting Balance**: 50 coins
 - **Cost**: 1 coin per drop
 - **Earnings**: Cashout completed rows for dynamic payouts
 - **Anti-Spam**: 0.75-second cooldown between coin drops
 
 ### Visual Features
+
 - **Pulsing Buckets**: Buckets that complete rows glow and pulse
 - **Confetti Celebration**: Colorful confetti burst when you cashout
 - **Vibrant Color Scheme**:
@@ -37,9 +41,10 @@ An interactive arcade-style Plinko game built with **Matter.js** physics engine 
   - Cyan (#00d4ff) - Buckets
 
 ### Slot Machine
+
 - **3-Second Spin**: Realistic spinning animation
 - **6 Symbols**: 🏆 🍉 🍑 🍇 🍊 🍒
-- **Smart Highlighting**: 
+- **Smart Highlighting**:
   - Trophy and Watermelon rows prioritize SLOT cells
   - Other rows highlight numbers strategically
 
@@ -48,20 +53,24 @@ An interactive arcade-style Plinko game built with **Matter.js** physics engine 
 ### Installation
 
 1. **Clone the repository**
+
 ```bash
 git clone https://github.com/yourusername/magic-fruit-plinko.git
 cd magic-fruit-plinko
 ```
 
 2. **Install dependencies**
+
 ```bash
 npm install
 ```
 
 3. **Run development server**
+
 ```bash
 npm run dev
 ```
+
 The game will open at `http://localhost:5173`
 
 ### Build for Production
@@ -75,6 +84,7 @@ This creates optimized files in the `dist/` folder. You can deploy these files t
 ## 🎯 How to Play
 
 ### Controls
+
 - **LEFT Button**: Drop coin from left side
 - **RIGHT Button**: Drop coin from right side
 - **SPIN Button**: (Removed - slots trigger automatically when coins hit moving bucket)
@@ -90,6 +100,7 @@ This creates optimized files in the `dist/` folder. You can deploy these files t
 6. **Cashout**: Click CASHOUT button to collect your payout and reset the game
 
 ### Payout Values
+
 - **Cherry** (🍒): 7 or 11-14 coins
 - **Orange** (🍊): 13-18 coins
 - **Plum** (🍑): 45-58 coins
@@ -126,13 +137,13 @@ Edit `src/game.js`:
 
 ```javascript
 // Physics gravity
-this.engine.gravity.y = 1.8;  // Increase for faster coin fall
+this.engine.gravity.y = 1.8; // Increase for faster coin fall
 
 // Coin drop cooldown (milliseconds)
-this.coinDropCooldown = 750;  // Change to 500 for faster drops
+this.coinDropCooldown = 750; // Change to 500 for faster drops
 
 // Pulse animation speed
-this.pulseSpeed = 0.05;  // Higher = faster pulse
+this.pulseSpeed = 0.05; // Higher = faster pulse
 ```
 
 ### Modify Payout Ranges
@@ -146,14 +157,17 @@ this.payouts.cherry = Math.floor(Math.random() * 4) + 11; // 11-14
 ## 🐛 Troubleshooting
 
 ### Numbers Not Appearing in Table
+
 - Ensure all 8 custom bucket numbers (1-8) are generated in the number generation methods
 - Numbers are filtered to avoid duplicates across rows
 
 ### Coins Not Dropping
+
 - Check that you have coins remaining (display shows current balance)
 - Wait 0.75 seconds between drops (anti-spam cooldown)
 
 ### Game Not Running
+
 - Make sure all dependencies are installed: `npm install`
 - Check that you're using the dev server: `npm run dev`
 - Verify Matter.js is properly imported in `game.js`
@@ -163,6 +177,7 @@ this.payouts.cherry = Math.floor(Math.random() * 4) + 11; // 11-14
 1. **Create a GitHub repository** named `magic-fruit-plinko`
 
 2. **Build for production**:
+
 ```bash
 npm run build
 ```

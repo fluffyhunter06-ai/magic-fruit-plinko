@@ -135,7 +135,7 @@ export class PlinkoGame {
         this.movingBucket = {
             x: 25,
             y: 365,
-            width: 55,
+            width: 60,
             height: 50,
             minX: 25,
             maxX: 675,
@@ -628,6 +628,8 @@ export class PlinkoGame {
                         this.gameOver();
                     } else {
                         // Check if this number is in any special row - highlight in ALL applicable rows
+                        // BUT respect slot cell priority for trophy and watermelon
+                        
                         if (this.gameState.cherryNumbers.includes(bucket.value)) {
                             if (!this.gameState.highlightedCherry.includes(bucket.value)) {
                                 this.gameState.highlightedCherry.push(bucket.value);
@@ -648,14 +650,20 @@ export class PlinkoGame {
                                 this.gameState.highlightedGrape.push(bucket.value);
                             }
                         }
+                        // Only highlight watermelon numbers if SLOT cell is complete
                         if (this.gameState.watermelonNumbers.includes(bucket.value)) {
-                            if (!this.gameState.highlightedWatermelon.includes(bucket.value)) {
-                                this.gameState.highlightedWatermelon.push(bucket.value);
+                            if (this.gameState.highlightedSlots.watermelon === 1) {
+                                if (!this.gameState.highlightedWatermelon.includes(bucket.value)) {
+                                    this.gameState.highlightedWatermelon.push(bucket.value);
+                                }
                             }
                         }
+                        // Only highlight trophy numbers if both SLOT cells are complete
                         if (this.gameState.sevenNumbers.includes(bucket.value)) {
-                            if (!this.gameState.highlightedSeven.includes(bucket.value)) {
-                                this.gameState.highlightedSeven.push(bucket.value);
+                            if (this.gameState.highlightedSlots.trophy === 2) {
+                                if (!this.gameState.highlightedSeven.includes(bucket.value)) {
+                                    this.gameState.highlightedSeven.push(bucket.value);
+                                }
                             }
                         }
                         // Add to landed list if not in any row
@@ -692,6 +700,8 @@ export class PlinkoGame {
                     coinObj.collected = true;
                     
                     // Check if this number is in any special row - highlight in ALL applicable rows
+                    // BUT respect slot cell priority for trophy and watermelon
+                    
                     if (this.gameState.cherryNumbers.includes(bucket.value)) {
                         if (!this.gameState.highlightedCherry.includes(bucket.value)) {
                             this.gameState.highlightedCherry.push(bucket.value);
@@ -712,14 +722,20 @@ export class PlinkoGame {
                             this.gameState.highlightedGrape.push(bucket.value);
                         }
                     }
+                    // Only highlight watermelon numbers if SLOT cell is complete
                     if (this.gameState.watermelonNumbers.includes(bucket.value)) {
-                        if (!this.gameState.highlightedWatermelon.includes(bucket.value)) {
-                            this.gameState.highlightedWatermelon.push(bucket.value);
+                        if (this.gameState.highlightedSlots.watermelon === 1) {
+                            if (!this.gameState.highlightedWatermelon.includes(bucket.value)) {
+                                this.gameState.highlightedWatermelon.push(bucket.value);
+                            }
                         }
                     }
+                    // Only highlight trophy numbers if both SLOT cells are complete
                     if (this.gameState.sevenNumbers.includes(bucket.value)) {
-                        if (!this.gameState.highlightedSeven.includes(bucket.value)) {
-                            this.gameState.highlightedSeven.push(bucket.value);
+                        if (this.gameState.highlightedSlots.trophy === 2) {
+                            if (!this.gameState.highlightedSeven.includes(bucket.value)) {
+                                this.gameState.highlightedSeven.push(bucket.value);
+                            }
                         }
                     }
                     // Add to landed list if not in any row
@@ -791,7 +807,7 @@ export class PlinkoGame {
                 // Highlight SLOT cell
                 this.gameState.highlightedSlots.watermelon += 1;
             } else if (this.gameState.highlightedWatermelon.length < this.gameState.watermelonNumbers.length) {
-                // Then highlight regular numbers
+                // Only highlight numbers after SLOT is complete
                 const unhighlighted = this.gameState.watermelonNumbers.filter(n => !this.gameState.highlightedWatermelon.includes(n));
                 if (unhighlighted.length > 0) {
                     this.gameState.highlightedWatermelon.push(unhighlighted[0]);
@@ -1305,10 +1321,18 @@ export class PlinkoGame {
 
         // Draw moving bucket
         const mb = this.movingBucket;
-        this.ctx.fillStyle = '#ff00ff';
+        this.ctx.fillStyle = '#b0fc00';
         this.ctx.globalAlpha = 0.7;
         this.ctx.fillRect(mb.x, mb.y, mb.width, mb.height);
         this.ctx.globalAlpha = 1;
+        this.ctx.fillStyle = '#000000';
+
+        this.ctx.font = "12px Arial";
+        this.ctx.fillText(
+                "SLOT",
+                mb.x + mb.width / 2,
+                mb.y + mb.height / 2
+        );
 
         // Moving bucket border
         this.ctx.strokeStyle = '#ff00ff';
@@ -1320,13 +1344,6 @@ export class PlinkoGame {
         this.ctx.font = 'bold 20px Arial';
         this.ctx.textAlign = 'center';
         
-        if (mb.currentValue > 0) {
-            this.ctx.fillText(
-                mb.currentValue.toString(),
-                mb.x + mb.width / 2,
-                mb.y + mb.height / 2 + 5
-            );
-        }
 
         // Draw swaying bars
         this.swayBars.forEach(bar => {
@@ -1510,6 +1527,8 @@ export class PlinkoGame {
         const helperDisplay = document.getElementById('helperDisplay');
         const positionText = document.getElementById('positionText');
         const canvas = this.canvas;
+
+        helperBtn.disabled=true;
 
         // Left coin button - drops at X:205
         leftBtn.addEventListener('click', () => {

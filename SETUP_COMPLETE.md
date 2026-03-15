@@ -3,6 +3,7 @@
 ## 🎉 What's Been Done
 
 ### ✨ Code Improvements
+
 1. ✅ **Fixed Missing Numbers** - All numbers 1-8 now appear in the table (no more missing 8)
 2. ✅ **Removed Spin Button** - Cleaner interface, slots trigger automatically when coins hit moving bucket
 3. ✅ **Added Coin Drop Cooldown** - 0.75 second wait between drops to prevent spam
@@ -10,6 +11,7 @@
 5. ✅ **Improved Number Generation** - Better distribution ensures all numbers are utilized
 
 ### 📦 Project Files Created
+
 - ✅ `.gitignore` - Keeps repo clean
 - ✅ `README.md` - Complete game documentation
 - ✅ `GITHUB_SETUP.md` - Step-by-step GitHub publishing guide
@@ -21,10 +23,12 @@
 ## 🚀 How to Run Locally
 
 ### Option 1: Click Start Script (Easiest)
+
 - **Windows**: Double-click `start.bat`
 - **Mac/Linux**: Run `./start.sh` in terminal
 
 ### Option 2: Manual Commands
+
 ```bash
 cd "c:\Users\arnel\Documents\codes\MAGIC FRUIT"
 npm install
@@ -36,26 +40,31 @@ Then open your browser to: **http://localhost:5173**
 ## 📤 How to Share on GitHub
 
 ### Quick Steps:
+
 1. Go to [GitHub.com](https://github.com) and create a new repo
 2. Name it: `magic-fruit-plinko`
 3. Run these commands:
+
 ```bash
 cd "c:\Users\arnel\Documents\codes\MAGIC FRUIT"
 git branch -M main
 git remote add origin https://github.com/YOUR_USERNAME/magic-fruit-plinko.git
 git push -u origin main
 ```
+
 4. Read `GITHUB_SETUP.md` for full GitHub Pages deployment instructions
 
 ## 🎮 Game Features Summary
 
 ### New in This Update
+
 - 🎊 **Confetti Effect** - Celebration burst with purple, pink, gold, lime, and blue colors
 - ⏱️ **Anti-Spam Protection** - Can't drop coins faster than 0.75 seconds apart
 - 🎯 **Complete Number Usage** - All 8 custom bucket numbers (1-8) now properly distributed
 - 🎮 **Simpler Controls** - One less button to click (no separate spin button)
 
 ### Existing Features
+
 - 🎰 Physics-based coin dropping
 - 🎪 Swaying bars and moving bucket
 - 🏆 6 fruit-themed rows with payout values
@@ -85,16 +94,19 @@ MAGIC FRUIT/
 ## 🎯 Next Steps
 
 ### To Play Locally:
+
 1. Run `start.bat` (Windows) or `./start.sh` (Mac/Linux)
 2. Browser opens automatically
 3. Play the game!
 
 ### To Share on GitHub:
+
 1. Follow instructions in `GITHUB_SETUP.md`
 2. Deploy to GitHub Pages (free hosting)
 3. Share the link with friends!
 
 ### To Customize:
+
 - Edit `src/game.js` to adjust physics, payouts, etc.
 - Edit `src/style.css` to change colors
 - Rebuild with `npm run build`
@@ -102,18 +114,22 @@ MAGIC FRUIT/
 ## 🐛 Quick Troubleshooting
 
 **Game won't start?**
+
 - Make sure Node.js is installed: `node -v`
 - Run `npm install` to get dependencies
 
 **Numbers missing?**
+
 - Numbers 1-8 should appear in custom buckets now
 - If not, restart the game with `npm run dev`
 
 **Can't push to GitHub?**
+
 - Make sure git is installed: `git --version`
 - Check your GitHub credentials are saved
 
 **Confetti not showing?**
+
 - Make sure you're using the latest browser
 - Check browser console for errors (F12)
 
@@ -160,6 +176,7 @@ MAGIC FRUIT/
 ## ✨ You're All Set!
 
 Everything is ready to go! Your game is:
+
 - ✅ Fully functional
 - ✅ Ready to share on GitHub
 - ✅ Optimized for deployment
@@ -171,6 +188,7 @@ Everything is ready to go! Your game is:
 ---
 
 **Questions or issues?**
+
 1. Check `README.md` for gameplay help
 2. Check `GITHUB_SETUP.md` for deployment help
 3. Review code comments in `src/game.js` for technical details

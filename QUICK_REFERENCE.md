@@ -3,16 +3,19 @@
 ## Start the Game
 
 ### Windows
+
 ```bash
 start.bat
 ```
 
 ### Mac/Linux
+
 ```bash
 ./start.sh
 ```
 
 ### Manual (Any OS)
+
 ```bash
 npm install   # Only needed once
 npm run dev   # Start server
@@ -54,39 +57,39 @@ git push -u origin main
 
 ## Game Controls
 
-| Control | Action |
-|---------|--------|
-| **LEFT Button** | Drop coin from left |
-| **RIGHT Button** | Drop coin from right |
+| Control            | Action                  |
+| ------------------ | ----------------------- |
+| **LEFT Button**    | Drop coin from left     |
+| **RIGHT Button**   | Drop coin from right    |
 | **CASHOUT Button** | Cash out completed rows |
-| **Helper ON/OFF** | Toggle position display |
+| **Helper ON/OFF**  | Toggle position display |
 
 ---
 
 ## Key Game Info
 
-| Property | Value |
-|----------|-------|
-| Starting Coins | 50 |
-| Cost per Drop | 1 coin |
-| Drop Cooldown | 0.75 seconds |
-| Max Rows | 6 |
-| Max Payout | 200 coins (Trophy) |
+| Property       | Value              |
+| -------------- | ------------------ |
+| Starting Coins | 50                 |
+| Cost per Drop  | 1 coin             |
+| Drop Cooldown  | 0.75 seconds       |
+| Max Rows       | 6                  |
+| Max Payout     | 200 coins (Trophy) |
 
 ---
 
 ## Files Overview
 
-| File | Purpose |
-|------|---------|
-| `index.html` | Main game page |
-| `src/game.js` | Game engine & logic |
-| `src/main.js` | Entry point |
-| `src/style.css` | Game styling |
-| `package.json` | Dependencies |
-| `README.md` | Full documentation |
-| `GITHUB_SETUP.md` | GitHub deployment guide |
-| `SETUP_COMPLETE.md` | Detailed setup info |
+| File                | Purpose                 |
+| ------------------- | ----------------------- |
+| `index.html`        | Main game page          |
+| `src/game.js`       | Game engine & logic     |
+| `src/main.js`       | Entry point             |
+| `src/style.css`     | Game styling            |
+| `package.json`      | Dependencies            |
+| `README.md`         | Full documentation      |
+| `GITHUB_SETUP.md`   | GitHub deployment guide |
+| `SETUP_COMPLETE.md` | Detailed setup info     |
 
 ---
 
@@ -113,6 +116,7 @@ git log             # View commit history
 ## Share With Friends
 
 Just give them this link:
+
 ```
 https://YOUR_USERNAME.github.io/magic-fruit-plinko
 ```
@@ -124,11 +128,13 @@ No installation needed - plays directly in browser! 🎮
 ## Troubleshooting
 
 **Port 5173 already in use?**
+
 ```bash
 npm run dev -- --port 3000
 ```
 
 **Want to update later?**
+
 ```bash
 # Make changes
 git add .
@@ -138,6 +144,7 @@ git push
 ```
 
 **Need to reinstall dependencies?**
+
 ```bash
 rm -rf node_modules package-lock.json
 npm install
@@ -148,6 +155,7 @@ npm install
 ## File Size Reference
 
 After `npm run build`:
+
 - **index.html**: ~1.5 KB
 - **JavaScript bundle**: ~200-300 KB (with Matter.js)
 - **Total**: ~350-400 KB (includes all dependencies)
@@ -157,6 +165,7 @@ After `npm run build`:
 ## Browser Compatibility
 
 Works on:
+
 - ✅ Chrome/Chromium (recommended)
 - ✅ Firefox
 - ✅ Safari
