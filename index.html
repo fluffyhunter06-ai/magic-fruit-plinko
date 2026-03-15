@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Magic Fruit - Plinko Game</title>
     <link rel="stylesheet" href="/src/style.css">
 </head>
@@ -10,33 +10,44 @@
     <div class="helper-display" id="helperDisplay" style="display: none;">
         <span id="positionText">X: 0 | Y: 0</span>
     </div>
-    <button id="helperBtn" class="btn btn-helper">🎯 Helper ON/OFF</button>
     
-    <!-- Slot Machine on Left Side -->
-    <div class="slot-machine-container">
-        <canvas id="slotMachineCanvas" width="120" height="240"></canvas>
+    <!-- Main Game Container -->
+    <div class="game-wrapper">
+        <!-- Game Canvas - 65% on mobile -->
+        <div class="canvas-container">
+            <canvas id="gameCanvas" width="750" height="800"></canvas>
+        </div>
+        
+        <!-- Bottom Info Panel - Coins & Slot Side by Side -->
+        <div class="bottom-panel">
+            <!-- Slot Machine -->
+            <div class="slot-machine-container" id="slotContainer">
+                <canvas id="slotMachineCanvas" width="120" height="240"></canvas>
+            </div>
+            
+            <!-- Coin Panel -->
+            <div class="coin-panel">
+                <div class="coin-header">💰 COINS</div>
+                <div class="coin-balance">
+                    <span id="coinCount">50</span>
+                </div>
+                <div class="payout-info">
+                    <div class="payout-title">PAYOUTS</div>
+                    <div id="payoutList" class="payout-list"></div>
+                </div>
+                <button id="cashoutBtn" class="btn btn-cashout">CASHOUT</button>
+            </div>
+        </div>
     </div>
     
-    <div class="container">
-        <canvas id="gameCanvas" width="750" height="800"></canvas>
-        <button id="leftBtn" class="btn btn-coin btn-coin-left">LEFT</button>
-        <button id="rightBtn" class="btn btn-coin btn-coin-right">RIGHT</button>
-    </div>
-
-    <!-- Coin Info Panel on Right Side -->
-    <div class="coin-panel">
-        <div class="coin-header">💰 COINS</div>
-        <div class="coin-balance">
-            <span id="coinCount">50</span>
-        </div>
-        <div class="payout-info">
-            <div class="payout-title">PAYOUTS</div>
-            <div id="payoutList" class="payout-list"></div>
-        </div>
-        <button id="cashoutBtn" class="btn btn-cashout">CASHOUT</button>
+    <!-- Fixed Control Buttons (Bottom) -->
+    <div class="mobile-controls">
+        <button id="leftBtn" class="btn btn-coin btn-coin-mobile btn-coin-left-mobile">◀</button>
+        <button id="rightBtn" class="btn btn-coin btn-coin-mobile btn-coin-right-mobile">▶</button>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/howler/2.2.4/howler.min.js"></script>
     <script type="module" src="/src/main.js"></script>
 </body>
 </html>

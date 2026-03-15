@@ -6,19 +6,107 @@ const Bodies = Matter.Bodies;
 const Events = Matter.Events;
 const Body = Matter.Body;
 
-// Slot Machine class - Realistic Spinning Animation
+// Sound Manager - Handles all game sounds
+class SoundManager {
+    constructor() {
+        this.sounds = {
+            bounce: null,
+            bucket: null,
+            cashout: null
+        };
+        this.initSounds();
+    }
+
+    initSounds() {
+        // Check if Howler is available
+        if (typeof Howl === 'undefined') {
+            console.warn('Howler.js not loaded, sound disabled');
+            return;
+        }
+
+        // Create simple beep sounds using Web Audio API as fallback
+        try {
+            this.sounds.bounce = new Howl({
+                src: ['data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='],
+                html5: true,
+                volume: 0.3
+            });
+            this.sounds.bucket = new Howl({
+                src: ['data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='],
+                html5: true,
+                volume: 0.4
+            });
+            this.sounds.cashout = new Howl({
+                src: ['data:audio/wav;base64,UklGRiYAAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQIAAAAAAA=='],
+                html5: true,
+                volume: 0.5
+            });
+        } catch (e) {
+            console.warn('Could not initialize sounds:', e);
+        }
+    }
+
+    playBounce() {
+        // Play short beep for pin bounce
+        this.playTone(800, 50);
+
+        
+    }
+
+    playBucket() {
+        // Play deeper beep for bucket hit
+        this.playTone(1000, 100);
+        
+    }
+
+    playCashout() {
+        // Play cheerful ascending tones
+        setTimeout(() => this.playTone(600, 150), 0);
+        setTimeout(() => this.playTone(800, 150), 150);
+        setTimeout(() => this.playTone(1000, 200), 300);
+    }
+
+    playTone(frequency, duration) {
+        if (!window.audioContext) {
+            window.audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+        
+        const ctx = window.audioContext;
+        const now = ctx.currentTime;
+        
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.frequency.value = frequency;
+        osc.type = 'sine';
+        
+        gain.gain.setValueAtTime(0.1, now);
+        gain.gain.exponentialRampToValueAtTime(0.01, now + duration / 1000);
+        
+        osc.start(now);
+        osc.stop(now + duration / 1000);
+    }
+}
+
+// Slot Machine class - Smooth Scrolling Animation
 class SlotMachine {
     constructor() {
         this.symbols = ['🏆', '🍉', '🍑', '🍇', '🍊', '🍒'];
         this.canvas = document.getElementById('slotMachineCanvas');
         this.ctx = this.canvas.getContext('2d');
+        this.soundManager = new SoundManager();
         
-        this.currentSymbolIndex = 0;
+        this.scrollOffset = 0; // Position in the scroll (in pixels)
         this.isSpinning = false;
-        this.spinDuration = 3.0; // 3 seconds
+        this.spinDuration = 1.5; // 1.5 seconds - faster spin
         this.spinElapsed = 0;
         this.selectedIndex = 0;
-        this.bounceAmount = 0;
+        
+        this.symbolHeight = 100; // Height of each symbol in the reel
+        this.reelSpeed = 0; // Current speed of reel
     }
 
     spin() {
@@ -35,30 +123,35 @@ class SlotMachine {
         const progress = this.spinElapsed / this.spinDuration;
         
         if (this.spinElapsed >= this.spinDuration) {
-            // Spin finished
-            this.currentSymbolIndex = this.selectedIndex;
+            // Spin finished - position to selected symbol
+            this.scrollOffset = this.selectedIndex * this.symbolHeight;
             this.isSpinning = false;
             this.spinElapsed = 0;
-            this.bounceAmount = 0;
+            this.reelSpeed = 0;
         } else {
-            // Spinning phase with easing
-            if (progress < 0.7) {
-                // Fast spinning phase (0-70%)
-                const spinSpeed = 15 * (1 - progress * 0.5); // Slow down gradually
-                this.currentSymbolIndex = Math.floor((this.spinElapsed * 60 * spinSpeed) % this.symbols.length);
-            } else if (progress < 0.9) {
-                // Slowing down phase (70-90%)
-                const slowProgress = (progress - 0.7) / 0.2;
-                const cycleIndex = Math.floor(this.selectedIndex + slowProgress * 2) % this.symbols.length;
-                this.currentSymbolIndex = cycleIndex;
+            // Realistic slot machine animation with rapid spinning and smooth deceleration
+            if (progress < 0.6) {
+                // Rapid spinning phase (0-60%) - high constant speed
+                this.reelSpeed = 800; // Very fast spinning
+            } else if (progress < 0.85) {
+                // Deceleration phase (60-85%) - smooth slowdown
+                const deccelProgress = (progress - 0.6) / 0.25;
+                // Cubic easing for realistic deceleration
+                const easeProgress = deccelProgress * deccelProgress * (3 - 2 * deccelProgress);
+                this.reelSpeed = 800 * (1 - easeProgress * 0.95);
             } else {
-                // Landing phase with bounce (90-100%)
-                const bounceProgress = (progress - 0.9) / 0.1;
-                this.currentSymbolIndex = this.selectedIndex;
-                // Bounce animation
-                const bounceValue = Math.sin(bounceProgress * Math.PI * 3) * (1 - bounceProgress) * 15;
-                this.bounceAmount = bounceValue;
+                // Final positioning (85-100%) - subtle final bounce effect
+                const finalProgress = (progress - 0.85) / 0.15;
+                const targetOffset = this.selectedIndex * this.symbolHeight;
+                
+                // Ease-out cubic for smooth final positioning
+                const easeOut = 1 - Math.pow(1 - finalProgress, 3);
+                this.scrollOffset = targetOffset * easeOut;
+                this.reelSpeed = 0;
             }
+            
+            // Update scroll position
+            this.scrollOffset += this.reelSpeed * deltaTime;
         }
     }
 
@@ -67,42 +160,42 @@ class SlotMachine {
         this.ctx.fillStyle = 'rgba(20, 10, 30, 0.9)';
         this.ctx.fillRect(0, 0, this.canvas.width, this.canvas.height);
 
-        // Draw single symbol box
-        const boxSize = 120;
-        const x = (this.canvas.width - boxSize) / 2;
-        const y = (this.canvas.height - boxSize) / 2 + this.bounceAmount;
+        // Draw reel window with clipping
+        const windowHeight = this.symbolHeight;
+        const windowY = (this.canvas.height - windowHeight) / 2;
 
-        // Box background with glow when spinning
+        // Set up clipping region
+        this.ctx.save();
+        this.ctx.beginPath();
+        this.ctx.rect(0, windowY, this.canvas.width, windowHeight);
+        this.ctx.clip();
+
+        // Draw scrolling symbols
+        const offset = this.scrollOffset % (this.symbols.length * this.symbolHeight);
+        
+        for (let i = -1; i < this.symbols.length + 1; i++) {
+            const y = windowY + (i * this.symbolHeight) - offset;
+            
+            // Draw symbol
+            this.ctx.font = 'bold 70px Arial';
+            this.ctx.textAlign = 'center';
+            this.ctx.textBaseline = 'middle';
+            this.ctx.fillStyle = '#ffffff';
+            this.ctx.fillText(this.symbols[i % this.symbols.length], this.canvas.width / 2, y + this.symbolHeight / 2);
+        }
+
+        this.ctx.restore();
+
+        // Draw window border with glow
         if (this.isSpinning) {
             this.ctx.shadowColor = '#ffff00';
             this.ctx.shadowBlur = 10;
-        } else {
-            this.ctx.shadowColor = 'transparent';
-            this.ctx.shadowBlur = 0;
         }
         
-        this.ctx.fillStyle = 'rgba(40, 20, 60, 0.8)';
-        this.ctx.fillRect(x, y, boxSize, boxSize);
-
-        // Box border
-        this.ctx.shadowColor = 'transparent';
-        this.ctx.strokeStyle = this.isSpinning ? '#ffff00' : '#ffff00';
+        this.ctx.strokeStyle = '#ffff00';
         this.ctx.lineWidth = this.isSpinning ? 4 : 3;
-        this.ctx.strokeRect(x, y, boxSize, boxSize);
-
-        // Draw symbol with scale animation
-        this.ctx.save();
-        const scale = this.isSpinning ? 1.0 : 1.0 + Math.sin(this.spinElapsed) * 0.05;
-        this.ctx.translate(this.canvas.width / 2, this.canvas.height / 2 + this.bounceAmount);
-        this.ctx.scale(scale, scale);
-        
-        this.ctx.font = 'bold 80px Arial';
-        this.ctx.textAlign = 'center';
-        this.ctx.textBaseline = 'middle';
-        this.ctx.fillStyle = '#ffffff';
-        this.ctx.fillText(this.symbols[this.currentSymbolIndex], 0, 0);
-        
-        this.ctx.restore();
+        this.ctx.strokeRect(0, windowY, this.canvas.width, windowHeight);
+        this.ctx.shadowColor = 'transparent';
     }
 
     getResult() {
@@ -121,8 +214,15 @@ export class PlinkoGame {
         this.mouseX = 0;
         this.mouseY = 0;
 
+        // Sound manager instance
+        this.soundManager = new SoundManager();
+
         // Slot machine instance
         this.slotMachine = new SlotMachine();
+
+        // Load coin image
+        this.coinImage = new Image();
+        this.coinImage.src = '/src/coin.webp';
 
         // Swaying bars properties
         this.swayBars = [];   // Array to hold all swaying bar bodies
@@ -165,7 +265,8 @@ export class PlinkoGame {
             highlightedSlots: {
                 trophy: 0,  // 0-2 slots available for trophy
                 watermelon: 0  // 0-1 slots available for watermelon
-            }
+            },
+            movingBucketHits: new Set() // Track coins that hit moving bucket
         };
 
         // Player coin system
@@ -188,6 +289,12 @@ export class PlinkoGame {
         // Coin drop cooldown to prevent spam
         this.lastCoinDropTime = 0;
         this.coinDropCooldown = 750; // milliseconds (0.75 seconds)
+        
+        // Frame rate limiting for mobile
+        this.lastFrameTime = 0;
+        // Detect if mobile device and set appropriate frame target
+        this.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        this.targetFPS = 60; // Cap at 60fps for all devices to ensure consistency
 
         this.setupWorld();
         this.setupControls();
@@ -221,6 +328,17 @@ export class PlinkoGame {
 
         // Add walls
         this.createWalls();
+        
+        // Setup collision events for sound effects
+        Events.on(this.engine, 'collisionStart', (event) => {
+            event.pairs.forEach(pair => {
+                // Play bounce sound when coin hits peg
+                if ((pair.bodyA.label === 'coin' || pair.bodyB.label === 'coin') &&
+                    (pair.bodyA.label === 'peg' || pair.bodyB.label === 'peg')) {
+                    this.soundManager.playBounce();
+                }
+            });
+        });
     }
 
     createSwayingBar(barX) {
@@ -411,7 +529,7 @@ export class PlinkoGame {
     }
 
     generateCherryNumbers() {
-        // Generate 2-3 random numbers from 1-8
+        // Generate 2-3 random UNIQUE numbers from 1-8
         const allNumbers = [1, 2, 3, 4, 5, 6, 7, 8];
         const count = Math.random() < 0.5 ? 2 : 3; // 50% chance of 2 or 3 numbers
         
@@ -421,13 +539,15 @@ export class PlinkoGame {
             [allNumbers[i], allNumbers[j]] = [allNumbers[j], allNumbers[i]];
         }
         
-        this.gameState.cherryNumbers = allNumbers.slice(0, count);
+        // Remove duplicates just in case
+        const cherryNumbers = [...new Set(allNumbers.slice(0, count))];
+        this.gameState.cherryNumbers = cherryNumbers;
         this.gameState.highlightedCherry = [];
     }
 
     generatePlumNumbers() {
-        // Plum: 4 digits - 3 unique from 9-16, 1 shared from orange
-        let plumPool = [9, 10, 11, 12, 13, 14, 15, 16].filter(n => !this.gameState.orangeNumbers.includes(n));
+        // Plum: 4 unique digits from 9-16
+        let plumPool = [9, 10, 11, 12, 13, 14, 15, 16];
         
         // Shuffle
         for (let i = plumPool.length - 1; i > 0; i--) {
@@ -435,18 +555,13 @@ export class PlinkoGame {
             [plumPool[i], plumPool[j]] = [plumPool[j], plumPool[i]];
         }
         
-        // 3 unique from available pool + 1 from orange
-        const num1 = plumPool.length > 0 ? plumPool[0] : 9;
-        const num2 = plumPool.length > 1 ? plumPool[1] : 10;
-        const num3 = plumPool.length > 2 ? plumPool[2] : 11;
-        const orangeShared = this.gameState.orangeNumbers.length > 2 ? this.gameState.orangeNumbers[2] : 12;
-        
-        this.gameState.plumNumbers = [num1, num2, num3, orangeShared];
+        // Take first 4 unique numbers
+        this.gameState.plumNumbers = [...new Set(plumPool.slice(0, 4))];
         this.gameState.highlightedPlum = [];
     }
 
     generateOrangeNumbers() {
-        // Orange: 3 fixed numbers - ensure all custom bucket numbers (1-8) are used
+        // Orange: 3 unique numbers from available 1-8
         let availableFromCustom = [1, 2, 3, 4, 5, 6, 7, 8].filter(n => !this.gameState.cherryNumbers.includes(n));
         
         // Shuffle available numbers
@@ -455,30 +570,16 @@ export class PlinkoGame {
             [availableFromCustom[i], availableFromCustom[j]] = [availableFromCustom[j], availableFromCustom[i]];
         }
         
-        if (this.gameState.cherryNumbers.length === 3) {
-            // Cherry has 3: Copy 2 from cherry, 1 unique from 1-8
-            const thirdNum = availableFromCustom.length > 0 ? availableFromCustom[0] : 1;
-            this.gameState.orangeNumbers = [
-                this.gameState.cherryNumbers[0],
-                this.gameState.cherryNumbers[1],
-                thirdNum
-            ];
-        } else {
-            // Cherry has 2: 2 unique from 1-8, 1 unique from remaining
-            const num1 = availableFromCustom.length > 0 ? availableFromCustom[0] : 1;
-            const num2 = availableFromCustom.length > 1 ? availableFromCustom[1] : 2;
-            this.gameState.orangeNumbers = [
-                num1,
-                num2,
-                availableFromCustom.length > 2 ? availableFromCustom[2] : 3
-            ];
-        }
+        // Select exactly 3 unique numbers
+        const orangeNumbers = availableFromCustom.slice(0, 3);
+        // Ensure no duplicates
+        this.gameState.orangeNumbers = [...new Set(orangeNumbers)];
         
         this.gameState.highlightedOrange = [];
     }
 
     generateGrapeNumbers() {
-        // Grape: 4 numbers (up to 3 from 1-8, up to 1 from 9-16)
+        // Grape: 4 unique numbers (up to 3 from 1-8, rest from 9-16)
         const usedInCherry = this.gameState.cherryNumbers;
         const usedInOrange = this.gameState.orangeNumbers;
         const usedInPlum = this.gameState.plumNumbers;
@@ -500,16 +601,11 @@ export class PlinkoGame {
             [available9_16[i], available9_16[j]] = [available9_16[j], available9_16[i]];
         }
         
-        // Build grape numbers using available numbers
-        const grapeNumbers = [];
-        // Add up to 3 from custom (1-8)
-        for (let i = 0; i < Math.min(3, availableFromCustom.length); i++) {
-            grapeNumbers.push(availableFromCustom[i]);
-        }
-        // Add from 9-16 to make 4 total
-        for (let i = 0; i < Math.min(4 - grapeNumbers.length, available9_16.length); i++) {
-            grapeNumbers.push(available9_16[i]);
-        }
+        // Build grape numbers using available numbers - ensure uniqueness
+        const grapeNumbers = [...new Set([
+            ...availableFromCustom.slice(0, 3),
+            ...available9_16.slice(0, Math.max(1, 4 - Math.min(3, availableFromCustom.length)))
+        ])];
         
         this.gameState.grapeNumbers = grapeNumbers.length > 0 ? grapeNumbers : [1, 2, 3, 9];
         this.gameState.highlightedGrape = [];
@@ -525,15 +621,23 @@ export class PlinkoGame {
             [available9_16[i], available9_16[j]] = [available9_16[j], available9_16[i]];
         }
         
-        // Take first 4 available (or as many as we have)
-        this.gameState.watermelonNumbers = available9_16.slice(0, Math.min(4, available9_16.length));
+        // Take first 4 available - ensure uniqueness
+        this.gameState.watermelonNumbers = [...new Set(available9_16.slice(0, 4))];
         this.gameState.highlightedWatermelon = [];
     }
 
     generateSevenNumbers() {
-        // 7: 3 numbers - 2 unique from 1-8 (excluding cherry), 1 unique from 9-16 (excluding plum, watermelon, grape)
-        let available1_8 = [1, 2, 3, 4, 5, 6, 7, 8].filter(n => !this.gameState.cherryNumbers.includes(n) && !this.gameState.orangeNumbers.includes(n) && !this.gameState.grapeNumbers.includes(n));
-        let available9_16 = [9, 10, 11, 12, 13, 14, 15, 16].filter(n => !this.gameState.plumNumbers.includes(n) && !this.gameState.watermelonNumbers.includes(n) && !this.gameState.grapeNumbers.includes(n));
+        // 7: 3 unique numbers - up to 2 from 1-8, rest from 9-16
+        let available1_8 = [1, 2, 3, 4, 5, 6, 7, 8].filter(n => 
+            !this.gameState.cherryNumbers.includes(n) && 
+            !this.gameState.orangeNumbers.includes(n) && 
+            !this.gameState.grapeNumbers.includes(n)
+        );
+        let available9_16 = [9, 10, 11, 12, 13, 14, 15, 16].filter(n => 
+            !this.gameState.plumNumbers.includes(n) && 
+            !this.gameState.watermelonNumbers.includes(n) && 
+            !this.gameState.grapeNumbers.includes(n)
+        );
         
         // Shuffle
         for (let i = available1_8.length - 1; i > 0; i--) {
@@ -545,12 +649,13 @@ export class PlinkoGame {
             [available9_16[i], available9_16[j]] = [available9_16[j], available9_16[i]];
         }
         
-        // Ensure we have enough numbers
-        const num1_8_1 = available1_8.length > 0 ? available1_8[0] : 1;
-        const num1_8_2 = available1_8.length > 1 ? available1_8[1] : 2;
-        const num9_16 = available9_16.length > 0 ? available9_16[0] : 9;
+        // Build unique numbers - up to 2 from 1-8, rest from 9-16
+        const sevenNumbers = [...new Set([
+            ...available1_8.slice(0, 2),
+            ...available9_16.slice(0, Math.max(1, 3 - Math.min(2, available1_8.length)))
+        ])];
         
-        this.gameState.sevenNumbers = [num1_8_1, num1_8_2, num9_16];
+        this.gameState.sevenNumbers = sevenNumbers.length > 0 ? sevenNumbers : [1, 2, 9];
         this.gameState.highlightedSeven = [];
     }
 
@@ -578,6 +683,36 @@ export class PlinkoGame {
         World.add(this.engine.world, [leftWall, rightWall]);
     }
 
+    updateButtonStates() {
+        const now = Date.now();
+        const isOnCooldown = (now - this.lastCoinDropTime) < this.coinDropCooldown;
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        
+        if (isOnCooldown) {
+            leftBtn.disabled = true;
+            rightBtn.disabled = true;
+        } else {
+            leftBtn.disabled = false;
+            rightBtn.disabled = false;
+        }
+    }
+
+    updateButtonStates() {
+        const now = Date.now();
+        const isOnCooldown = (now - this.lastCoinDropTime) < this.coinDropCooldown;
+        const leftBtn = document.getElementById('leftBtn');
+        const rightBtn = document.getElementById('rightBtn');
+        
+        if (isOnCooldown) {
+            leftBtn.disabled = true;
+            rightBtn.disabled = true;
+        } else {
+            leftBtn.disabled = false;
+            rightBtn.disabled = false;
+        }
+    }
+
     dropCoin(x = 375) {
         // Check cooldown to prevent spam
         const now = Date.now();
@@ -585,11 +720,12 @@ export class PlinkoGame {
             return; // Still in cooldown, ignore
         }
         this.lastCoinDropTime = now;
+        this.updateButtonStates(); // Disable buttons immediately after drop
         
         const coinRadius = 18;
         const coin = Bodies.circle(x, 0, coinRadius, {
-            restitution: 0.55,
-            friction: 0.3,
+            restitution: 0.35,
+            friction: 0.5,
             frictionAir: 0.02,
             density: 0.5,
             label: 'coin'
@@ -623,6 +759,9 @@ export class PlinkoGame {
                 ) {
                     coinObj.collected = true;
                     
+                    // Play bucket hit sound
+                    this.soundManager.playBucket();
+                    
                     // Check if landed on GAME OVER
                     if (bucket.value === 'GAME OVER') {
                         this.gameOver();
@@ -650,20 +789,16 @@ export class PlinkoGame {
                                 this.gameState.highlightedGrape.push(bucket.value);
                             }
                         }
-                        // Only highlight watermelon numbers if SLOT cell is complete
+                        // Highlight watermelon numbers immediately when hit
                         if (this.gameState.watermelonNumbers.includes(bucket.value)) {
-                            if (this.gameState.highlightedSlots.watermelon === 1) {
-                                if (!this.gameState.highlightedWatermelon.includes(bucket.value)) {
-                                    this.gameState.highlightedWatermelon.push(bucket.value);
-                                }
+                            if (!this.gameState.highlightedWatermelon.includes(bucket.value)) {
+                                this.gameState.highlightedWatermelon.push(bucket.value);
                             }
                         }
-                        // Only highlight trophy numbers if both SLOT cells are complete
+                        // Highlight trophy numbers immediately when hit
                         if (this.gameState.sevenNumbers.includes(bucket.value)) {
-                            if (this.gameState.highlightedSlots.trophy === 2) {
-                                if (!this.gameState.highlightedSeven.includes(bucket.value)) {
-                                    this.gameState.highlightedSeven.push(bucket.value);
-                                }
+                            if (!this.gameState.highlightedSeven.includes(bucket.value)) {
+                                this.gameState.highlightedSeven.push(bucket.value);
                             }
                         }
                         // Add to landed list if not in any row
@@ -699,6 +834,9 @@ export class PlinkoGame {
                 ) {
                     coinObj.collected = true;
                     
+                    // Play bucket hit sound
+                    this.soundManager.playBucket();
+                    
                     // Check if this number is in any special row - highlight in ALL applicable rows
                     // BUT respect slot cell priority for trophy and watermelon
                     
@@ -722,20 +860,16 @@ export class PlinkoGame {
                             this.gameState.highlightedGrape.push(bucket.value);
                         }
                     }
-                    // Only highlight watermelon numbers if SLOT cell is complete
+                    // Highlight watermelon numbers immediately when hit
                     if (this.gameState.watermelonNumbers.includes(bucket.value)) {
-                        if (this.gameState.highlightedSlots.watermelon === 1) {
-                            if (!this.gameState.highlightedWatermelon.includes(bucket.value)) {
-                                this.gameState.highlightedWatermelon.push(bucket.value);
-                            }
+                        if (!this.gameState.highlightedWatermelon.includes(bucket.value)) {
+                            this.gameState.highlightedWatermelon.push(bucket.value);
                         }
                     }
-                    // Only highlight trophy numbers if both SLOT cells are complete
+                    // Highlight trophy numbers immediately when hit
                     if (this.gameState.sevenNumbers.includes(bucket.value)) {
-                        if (this.gameState.highlightedSlots.trophy === 2) {
-                            if (!this.gameState.highlightedSeven.includes(bucket.value)) {
-                                this.gameState.highlightedSeven.push(bucket.value);
-                            }
+                        if (!this.gameState.highlightedSeven.includes(bucket.value)) {
+                            this.gameState.highlightedSeven.push(bucket.value);
                         }
                     }
                     // Add to landed list if not in any row
@@ -759,7 +893,10 @@ export class PlinkoGame {
 
             // Check moving bucket collision
             const movingBucket = this.movingBucket;
-            const topHitboxHeight = 10; // Top 10 pixels of bucket
+            const topHitboxHeight = 15; // Top 15 pixels of bucket for better hit detection
+            
+            // Only trigger slot machine once per coin
+            const coinKey = `${coin.position.x}_${coin.id || index}`;
             if (
                 coin.position.x > movingBucket.x &&
                 coin.position.x < movingBucket.x + movingBucket.width &&
@@ -767,11 +904,14 @@ export class PlinkoGame {
                 coin.position.y < movingBucket.y + topHitboxHeight &&
                 coin.velocity.y >= 0 // Coin is moving downward or at rest
             ) {
-                // Trigger slot machine
-                this.triggerSlotMachine();
+                // Only trigger once
+                if (!this.gameState.movingBucketHits.has(coinKey)) {
+                    this.gameState.movingBucketHits.add(coinKey);
+                    this.triggerSlotMachine();
+                }
                 
-                // Don't remove coin - let it pass through
-                coinObj.collected = true;
+                // Apply slight velocity to help it continue downward
+                Body.applyForce(coin, coin.position, { x: 0, y: 0.5 });
                 return;
             }
 
@@ -943,7 +1083,6 @@ export class PlinkoGame {
         
         // Draw 7 row (row 0, 🏆) - 2 slots + 3 numbers + payout
         const sevenRowY = startY + 0 * cellHeight;
-        this.ctx.fillStyle = '#ffffff';
         
         // Draw SLOT cells for trophy row
         for (let slotIdx = 0; slotIdx < 2; slotIdx++) {
@@ -956,6 +1095,8 @@ export class PlinkoGame {
                 this.ctx.fillRect(cellX, sevenRowY, cellWidth, cellHeight);
                 this.ctx.fillStyle = '#000000';
             } else {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                this.ctx.fillRect(cellX, sevenRowY, cellWidth, cellHeight);
                 this.ctx.fillStyle = '#ffffff';
             }
             
@@ -971,9 +1112,13 @@ export class PlinkoGame {
             if (this.gameState.highlightedSeven.includes(num)) {
                 this.ctx.fillStyle = '#ffff00';
                 this.ctx.fillRect(cellX, sevenRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#000000';
+            } else {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.fillRect(cellX, sevenRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#ffffff';
             }
             
-            this.ctx.fillStyle = this.gameState.highlightedSeven.includes(num) ? '#000000' : '#ffffff';
             this.ctx.fillText(num, cellX + cellWidth / 2, sevenRowY + cellHeight / 2);
         }
         
@@ -988,7 +1133,11 @@ export class PlinkoGame {
         
         // Draw Watermelon row (row 1, 🍉) - 1 slot + 4 numbers + payout
         const watermelonRowY = startY + 1 * cellHeight;
-        this.ctx.fillStyle = '#ffffff';
+        
+        // Reset font for watermelon row
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
         
         // Draw SLOT cell for watermelon row
         const slotCellX = startX + cellWidth;
@@ -997,6 +1146,8 @@ export class PlinkoGame {
             this.ctx.fillRect(slotCellX, watermelonRowY, cellWidth, cellHeight);
             this.ctx.fillStyle = '#000000';
         } else {
+            this.ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+            this.ctx.fillRect(slotCellX, watermelonRowY, cellWidth, cellHeight);
             this.ctx.fillStyle = '#ffffff';
         }
         this.ctx.fillText('SLOT', slotCellX + cellWidth / 2, watermelonRowY + cellHeight / 2);
@@ -1010,9 +1161,13 @@ export class PlinkoGame {
             if (this.gameState.highlightedWatermelon.includes(num)) {
                 this.ctx.fillStyle = '#ffff00';
                 this.ctx.fillRect(cellX, watermelonRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#000000';
+            } else {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.fillRect(cellX, watermelonRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#ffffff';
             }
             
-            this.ctx.fillStyle = this.gameState.highlightedWatermelon.includes(num) ? '#000000' : '#ffffff';
             this.ctx.fillText(num, cellX + cellWidth / 2, watermelonRowY + cellHeight / 2);
         }
         
@@ -1027,6 +1182,12 @@ export class PlinkoGame {
         
         // Draw Plum row (row 2, 🍑) - 4 numbers + payout
         const plumRowY = startY + 2 * cellHeight;
+        
+        // Reset font for plum row
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        
         for (let i = 0; i < this.gameState.plumNumbers.length; i++) {
             const num = this.gameState.plumNumbers[i];
             const col = i + 1;
@@ -1035,9 +1196,13 @@ export class PlinkoGame {
             if (this.gameState.highlightedPlum.includes(num)) {
                 this.ctx.fillStyle = '#ffff00';
                 this.ctx.fillRect(cellX, plumRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#000000';
+            } else {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.fillRect(cellX, plumRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#ffffff';
             }
             
-            this.ctx.fillStyle = this.gameState.highlightedPlum.includes(num) ? '#000000' : '#ffffff';
             this.ctx.fillText(num, cellX + cellWidth / 2, plumRowY + cellHeight / 2);
         }
         
@@ -1052,6 +1217,12 @@ export class PlinkoGame {
         
         // Draw Grape row (row 3, 🍇) - 4 numbers + payout
         const grapeRowY = startY + 3 * cellHeight;
+        
+        // Reset font for grape row
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        
         for (let i = 0; i < this.gameState.grapeNumbers.length; i++) {
             const num = this.gameState.grapeNumbers[i];
             const col = i + 1;
@@ -1060,9 +1231,13 @@ export class PlinkoGame {
             if (this.gameState.highlightedGrape.includes(num)) {
                 this.ctx.fillStyle = '#ffff00';
                 this.ctx.fillRect(cellX, grapeRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#000000';
+            } else {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.fillRect(cellX, grapeRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#ffffff';
             }
             
-            this.ctx.fillStyle = this.gameState.highlightedGrape.includes(num) ? '#000000' : '#ffffff';
             this.ctx.fillText(num, cellX + cellWidth / 2, grapeRowY + cellHeight / 2);
         }
         
@@ -1077,6 +1252,12 @@ export class PlinkoGame {
         
         // Draw Orange row (row 4, 🍊) - 3 numbers + payout
         const orangeRowY = startY + 4 * cellHeight;
+        
+        // Reset font for orange row
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        
         for (let i = 0; i < this.gameState.orangeNumbers.length; i++) {
             const num = this.gameState.orangeNumbers[i];
             const col = i + 1;
@@ -1085,9 +1266,13 @@ export class PlinkoGame {
             if (this.gameState.highlightedOrange.includes(num)) {
                 this.ctx.fillStyle = '#ffff00';
                 this.ctx.fillRect(cellX, orangeRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#000000';
+            } else {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.fillRect(cellX, orangeRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#ffffff';
             }
             
-            this.ctx.fillStyle = this.gameState.highlightedOrange.includes(num) ? '#000000' : '#ffffff';
             this.ctx.fillText(num, cellX + cellWidth / 2, orangeRowY + cellHeight / 2);
         }
         
@@ -1102,6 +1287,12 @@ export class PlinkoGame {
         
         // Draw Cherry row (row 5, 🍒) - 2-3 numbers + payout
         const cherryRowY = startY + 5 * cellHeight;
+        
+        // Reset font for cherry row
+        this.ctx.font = 'bold 18px Arial';
+        this.ctx.textAlign = 'center';
+        this.ctx.textBaseline = 'middle';
+        
         for (let i = 0; i < this.gameState.cherryNumbers.length; i++) {
             const num = this.gameState.cherryNumbers[i];
             const col = i + 1;
@@ -1110,9 +1301,13 @@ export class PlinkoGame {
             if (this.gameState.highlightedCherry.includes(num)) {
                 this.ctx.fillStyle = '#ffff00';
                 this.ctx.fillRect(cellX, cherryRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#000000';
+            } else {
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.fillRect(cellX, cherryRowY, cellWidth, cellHeight);
+                this.ctx.fillStyle = '#ffffff';
             }
             
-            this.ctx.fillStyle = this.gameState.highlightedCherry.includes(num) ? '#000000' : '#ffffff';
             this.ctx.fillText(num, cellX + cellWidth / 2, cherryRowY + cellHeight / 2);
         }
         
@@ -1207,43 +1402,20 @@ export class PlinkoGame {
                 const y = coin.position.y;
                 const r = coinObj.radius;
 
-                // Main coin body with metallic gradient
-                const gradient = this.ctx.createRadialGradient(
-                    x - 2,
-                    y - 2,
-                    0,
-                    x,
-                    y,
-                    r
-                );
-                gradient.addColorStop(0, '#ffff99');
-                gradient.addColorStop(0.4, '#ffdd00');
-                gradient.addColorStop(0.8, '#ffaa00');
-                gradient.addColorStop(1, '#cc6600');
-
-                this.ctx.fillStyle = gradient;
-                this.ctx.beginPath();
-                this.ctx.arc(x, y, r, 0, Math.PI * 2);
-                this.ctx.fill();
-
-                // Outer dark ring (arcade token style)
-                this.ctx.strokeStyle = '#664400';
-                this.ctx.lineWidth = 1.5;
-                this.ctx.beginPath();
-                this.ctx.arc(x, y, r, 0, Math.PI * 2);
-                this.ctx.stroke();
-
-                // Inner highlight shine
-                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
-                this.ctx.beginPath();
-                this.ctx.arc(x - 2, y - 2, r * 0.4, 0, Math.PI * 2);
-                this.ctx.fill();
-
-                // Secondary shine for depth
-                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.3)';
-                this.ctx.beginPath();
-                this.ctx.arc(x + 1, y + 2, r * 0.2, 0, Math.PI * 2);
-                this.ctx.fill();
+                // Draw coin image
+                if (this.coinImage.complete) {
+                    this.ctx.save();
+                    this.ctx.translate(x, y);
+                    this.ctx.rotate(coin.angle || 0);
+                    this.ctx.drawImage(this.coinImage, -r, -r, r * 2, r * 2);
+                    this.ctx.restore();
+                } else {
+                    // Fallback to circle if image not loaded
+                    this.ctx.fillStyle = '#ffdd00';
+                    this.ctx.beginPath();
+                    this.ctx.arc(x, y, r, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
             }
         });
 
@@ -1364,11 +1536,26 @@ export class PlinkoGame {
     }
 
     gameLoop = () => {
-        Engine.update(this.engine);
-
-        // Update slot machine
+        const now = performance.now();
+        const deltaTime = now - (this.lastFrameTime || now);
+        
+        // Target frame time based on device (60fps = 16.67ms)
+        const targetFrameTime = 1000 / this.targetFPS;
+        
+        // Skip frame if not enough time has passed (frame rate limiting)
+        if (deltaTime < targetFrameTime && this.lastFrameTime !== 0) {
+            requestAnimationFrame(this.gameLoop);
+            return;
+        }
+        
+        this.lastFrameTime = now;
+        
+        // Use consistent fixed timestep for physics and animations
+        const frameTime = targetFrameTime / 1000; // Convert to seconds
+        Matter.Engine.update(this.engine, targetFrameTime);
+        // Update slot machine with consistent frame time
         const wasSpinning = this.slotMachine.isSpinning;
-        this.slotMachine.update(1 / 60);
+        this.slotMachine.update(frameTime);
         
         // Check if slot machine just finished spinning
         if (wasSpinning && !this.slotMachine.isSpinning) {
@@ -1376,7 +1563,13 @@ export class PlinkoGame {
             this.processSlotMachineResult();
         }
 
-        // Update moving bucket position
+        // Update button states based on coin drop cooldown
+        this.updateButtonStates();
+
+        // Frame time in seconds for animation updates
+        const deltaSeconds = (1000 / this.targetFPS) / 1000; // Convert to seconds
+        
+        // Update moving bucket position with frame-time independent speed
         this.movingBucket.x += this.movingBucket.moveSpeed * this.movingBucket.direction;
         
         // Reverse direction at boundaries
@@ -1388,7 +1581,7 @@ export class PlinkoGame {
             this.movingBucket.direction = 1;
         }
 
-        // Update all swaying bars rotation
+        // Update all swaying bars rotation with frame-time independent speed
         if (this.swayBars.length > 0) {
             this.swayAngle += this.swaySpeed;
             const rotationAngle = Math.sin(this.swayAngle) * this.swayMaxAngle + 300;
@@ -1489,6 +1682,9 @@ export class PlinkoGame {
             this.lastCashout = totalPayout;
             this.updateUIPanel();
             
+            // Play cashout sound
+            this.soundManager.playCashout();
+            
             // Trigger confetti celebration
             this.celebrateWin();
             
@@ -1522,29 +1718,26 @@ export class PlinkoGame {
     setupControls() {
         const leftBtn = document.getElementById('leftBtn');
         const rightBtn = document.getElementById('rightBtn');
-        const helperBtn = document.getElementById('helperBtn');
         const cashoutBtn = document.getElementById('cashoutBtn');
         const helperDisplay = document.getElementById('helperDisplay');
         const positionText = document.getElementById('positionText');
         const canvas = this.canvas;
 
-        helperBtn.disabled=true;
-
-        // Left coin button - drops at X:205
+        // Left coin button - drops at left side of canvas
         leftBtn.addEventListener('click', () => {
-            if (this.playerCoins > 0) {
+            if (this.playerCoins > 0 && !leftBtn.disabled) {
                 this.playerCoins -= 1;
                 this.updateUIPanel();
-                this.dropCoin(205);
+                this.dropCoin(200); // Left third of canvas
             }
         });
 
-        // Right coin button - drops at X:545
+        // Right coin button - drops at right side of canvas
         rightBtn.addEventListener('click', () => {
-            if (this.playerCoins > 0) {
+            if (this.playerCoins > 0 && !rightBtn.disabled) {
                 this.playerCoins -= 1;
                 this.updateUIPanel();
-                this.dropCoin(545);
+                this.dropCoin(550); // Right third of canvas
             }
         });
 
@@ -1573,10 +1766,10 @@ export class PlinkoGame {
             }
         });
 
-        helperBtn.addEventListener('click', () => {
-            this.helperEnabled = !this.helperEnabled;
-            helperDisplay.style.display = this.helperEnabled ? 'block' : 'none';
-            helperBtn.classList.toggle('active', this.helperEnabled);
-        });
+        // helperBtn.addEventListener('click', () => {
+        //     this.helperEnabled = !this.helperEnabled;
+        //     helperDisplay.style.display = this.helperEnabled ? 'block' : 'none';
+        //     helperBtn.classList.toggle('active', this.helperEnabled);
+        // });
     }
 }
